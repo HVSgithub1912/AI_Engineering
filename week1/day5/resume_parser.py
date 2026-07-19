@@ -1,13 +1,20 @@
-from groq import Groq
 import os
-from pydantic import BaseModel
+import time
+from pathlib import Path
 from dotenv import load_dotenv
+from groq import Groq
+from pydantic import BaseModel, Field
+
 load_dotenv()
-api_key = os.getenv("GROQ_API_KEY")
-if not  api_key:
-    raise ValueError("key not available...")
-client = Groq(api_key= api_key)
-model = "llama-3.3-70b-versatile"
+my_api_key=os.getenv("GROQ_API_KEY")
+
+if not my_api_key:
+    raise ValueError("API key kaha hai bhai")
+
+client=Groq(api_key=my_api_key)
+model = "openai/gpt-oss-120b"
+
+
 job_description="""
 Description
 Do you want to solve real customer problems through innovative technology? Do you enjoy working on scalable services in a collaborative team environment? Do you want to see your code directly impact millions of customers worldwide?
@@ -42,12 +49,12 @@ Preferred Qualifications
 - Excellent written and verbal communication skills
 """
 class JobD(BaseModel):
-    role : str
-    required_skills : list[str]
-    preferred_skills : list[str]
-    min_exp          : float|None 
-    educational_requirements : list[str]
-    responsibilities : list[str]
+    role: str
+    required_skills: list[str]
+    preferred_skills: list[str]
+    minimum_experience: float | None
+    education_requirements: list[str]
+    responsibilities: list[str]
 
 jobd_schema = JobD.model_json_schema()
 
@@ -69,159 +76,254 @@ If minimum experience is not mentioned, return null.
 If information for a list is missing, return an empty list.
 Do not invent information.
 """
+
 user_prompt = f"""
-Analyze the following job description: # Job Description: Senior AI Engineer
+Analyze the following job description:
 
-## Job Title
-
-**Senior AI Engineer**
-
-## Location
-
-[Remote / Hybrid / On-site]
-
-## Employment Type
-
-Full-time
-
-## About the Role
-
-We are seeking a highly skilled and experienced Senior AI Engineer to lead the design, development, and deployment of cutting-edge artificial intelligence solutions. In this role, you will work closely with cross-functional teams to build scalable AI systems, production-grade machine learning models, and generative AI applications that solve complex business challenges. You will play a key role in shaping AI strategy, mentoring engineers, and driving innovation across the organization.
-
-## Key Responsibilities
-
-* Design, develop, and deploy production-ready AI, machine learning, and generative AI solutions.
-* Build and optimize Large Language Model (LLM) applications using techniques such as Retrieval-Augmented Generation (RAG), prompt engineering, tool calling, and AI agents.
-* Develop scalable ML pipelines for data ingestion, feature engineering, model training, evaluation, deployment, and monitoring.
-* Fine-tune and evaluate foundation models using modern frameworks and best practices.
-* Collaborate with product managers, software engineers, data scientists, and stakeholders to translate business requirements into AI-driven solutions.
-* Architect cloud-native AI platforms leveraging services from AWS, Azure, or Google Cloud.
-* Implement MLOps practices including CI/CD, model versioning, experiment tracking, monitoring, and automated retraining.
-* Optimize AI systems for performance, latency, scalability, reliability, and cost efficiency.
-* Establish AI governance standards, including model evaluation, explainability, fairness, privacy, and security.
-* Mentor junior engineers and conduct technical design reviews and code reviews.
-* Stay current with emerging AI technologies, research, and industry best practices.
-
-## Required Qualifications
-
-* Bachelor's or Master's degree in Computer Science, Artificial Intelligence, Machine Learning, Data Science, or a related field.
-* 7+ years of software engineering experience with at least 4+ years focused on AI/ML development.
-* Strong proficiency in Python and software engineering best practices.
-* Experience with deep learning frameworks such as PyTorch or TensorFlow.
-* Hands-on experience with LLMs and generative AI technologies including OpenAI, Anthropic, Gemini, or open-source models (Llama, Mistral, Qwen, etc.).
-* Experience building AI applications using frameworks such as LangChain, LangGraph, LlamaIndex, AutoGen, CrewAI, or Semantic Kernel.
-* Strong understanding of RAG architectures, vector databases, embeddings, and semantic search.
-* Experience with vector databases such as Pinecone, Weaviate, Milvus, Chroma, or FAISS.
-* Experience deploying AI applications using Docker, Kubernetes, and cloud platforms (AWS, Azure, or GCP).
-* Knowledge of REST APIs, microservices, and distributed systems.
-* Experience with SQL and NoSQL databases.
-* Familiarity with Git, CI/CD pipelines, and Agile development methodologies.
-
-## Preferred Qualifications
-
-* Experience fine-tuning LLMs using LoRA, QLoRA, or parameter-efficient fine-tuning (PEFT).
-* Experience with AI agents, multi-agent systems, and workflow orchestration.
-* Knowledge of multimodal AI, computer vision, speech AI, or recommendation systems.
-* Experience with GPU optimization, distributed training, or inference optimization.
-* Familiarity with model monitoring, evaluation frameworks, and AI observability tools.
-* Experience with data engineering tools such as Spark, Kafka, or Airflow.
-* Contributions to open-source AI projects or published AI research are a plus.
-
-## Technical Skills
-
-### Programming
-
-* Python
-* SQL
-* JavaScript/TypeScript (preferred)
-
-### AI/ML
-
-* Machine Learning
-* Deep Learning
-* NLP
-* LLMs
-* RAG
-* Prompt Engineering
-* AI Agents
-* Fine-tuning
-* Embeddings
-* Vector Search
-
-### Frameworks
-
-* PyTorch
-* TensorFlow
-* LangChain
-* LangGraph
-* LlamaIndex
-* Semantic Kernel
-* MLflow
-
-### Cloud & DevOps
-
-* AWS / Azure / GCP
-* Docker
-* Kubernetes
-* Terraform
-* GitHub Actions / Azure DevOps / Jenkins
-
-### Databases
-
-* PostgreSQL
-* MongoDB
-* Redis
-* Pinecone
-* Weaviate
-* FAISS
-* Chroma
-
-## Soft Skills
-
-* Strong analytical and problem-solving abilities.
-* Excellent communication and stakeholder management skills.
-* Leadership and mentoring experience.
-* Ability to drive technical strategy and architecture decisions.
-* Strong collaboration across engineering, product, and business teams.
-* Passion for innovation and continuous learning.
-
-## Success Metrics
-
-* Deliver scalable, production-grade AI solutions on time.
-* Improve model performance, reliability, and operational efficiency.
-* Reduce deployment time through robust MLOps practices.
-* Drive AI adoption across business functions.
-* Mentor engineers and foster engineering excellence.
-
-## What We Offer
-
-* Competitive compensation and performance-based incentives.
-* Flexible work environment (remote/hybrid).
-* Professional development and learning opportunities.
-* Access to cutting-edge AI technologies and cloud infrastructure.
-* Collaborative, innovation-driven engineering culture.
-* Comprehensive health and wellness benefits.
-
+{job_description}
 """
-
-user_message = {
-    'role': 'user',
-    'content' : user_prompt
+message_system={
+    "role" : "system",
+    "content" : system_prompt
+}
+message_user={
+    "role" : "user",
+    "content" : user_prompt
+}
+response_format={
+    "type" : "json_object"
 }
 
-system_message = {
-    'role': 'system',
-    'content' : system_prompt
-}
 
-response_format = {
-    'type' : 'json_object'
-}
-messages = [system_message , user_message]
-response = client.chat.completions.create(model = model, temperature = 0, messages = messages , response_format = response_format)
-answer = response.choices[0].message.content
-raw_json = answer
+messages=[message_system, message_user]
+
+response=client.chat.completions.create(model=model, messages=messages, response_format=response_format)
+
+
+answer=response.choices[0].message.content
+
+raw_json=answer
+# print(raw_json)
+
+
+
 import json
-job_data = json.loads(raw_json)
+job_data=json.loads(raw_json)
+
 job = JobD(**job_data)
 
+print(job.minimum_experience)
+print(job.education_requirements)
+
+
+
+#parse real
+class MatchResult(BaseModel):
+    score: float
+    details: dict
+class Experience(BaseModel):
+    company: str | None = None
+    role: str | None = None
+    duration: str | None = None
+    description: str | None = None
+    skills_used: list[str] = []
+
+class Resume(BaseModel):
+    name: str | None = None
+    email: str | None = None
+    phone: str | None = None
+
+    total_experience_years: float | None = None
+
+    skills: list[str] = []
+    experiences: list[Experience] = []
+    education: list[str] = []
+    projects: list[str] = []
+    certifications: list[str] = []
+
+
+resume_schema = Resume.model_json_schema()
+def final_score(job,resume):
+    match_schema = MatchResult.model_json_schema()
+    prompt = f"""
+    You are an HR recruiter.
+
+    Compare the candidate's resume with the job description.
+
+    JOB DESCRIPTION:
+    {job.model_dump_json(indent=2)}
+
+    CANDIDATE RESUME:
+    {resume.model_dump_json(indent=2)}
+    Return JSON matching this schema:
+
+    {match_schema}
+
+    Give me:
+
+    1. Candidate name
+    2. Matching skills
+    3. Missing important skills
+    4. Whether experience requirement is met
+    5. Overall match percentage from 0 to 100
+    6. A short final verdict
+
+    Keep the response concise and easy to read.
+    """
+    message={
+        "role": "user",
+        "content" : prompt
+    }
+    messages=[message]
+    response_format={
+        "type": "json_object"
+    }
+    response = client.chat.completions.create(model=model, messages=messages, response_format=response_format)
+    data = json.loads(response.choices[0].message.content)
+    return MatchResult(**data)
+def parse_resume(resume_text):
+    system_prompt = f"""
+    You are an expert resume parser.
+
+    Extract information from the resume based on its meaning,
+    not only based on exact section headings.
+
+    Different resumes may use different headings.
+
+    For example:
+    - Experience
+    - Professional Experience
+    - Work History
+    - Employment
+    - Internships
+
+    These may all contain relevant experience.
+
+    Skills may also appear in the skills section, work experience,
+    internships or projects.
+
+    Return ONLY valid JSON matching this schema:
+
+    {resume_schema}
+
+    Important rules:
+
+    1. Do not invent information.
+    2. If a value is not available, return null.
+    3. If a list has no information, return an empty list.
+    4. Include internships inside experiences.
+    5. Extract skills mentioned across the entire resume.
+    """
+    user_prompt = f"""
+    Parse the following resume:
+
+    {resume_text}
+    """
+    message_system={
+        "role" : "system",
+        "content" : system_prompt
+    }
+    message_user={
+        "role" : "user",
+        "content" : user_prompt
+    }
+    messages=[message_system, message_user]
+    response_format={
+        "type": "json_object"
+    }
+    response=client.chat.completions.create(model=model, messages=messages, response_format=response_format)
+    raw_output = response.choices[0].message.content
+    data = json.loads(raw_output)
+    resume = Resume(**data)
+    return resume
+
+
+from pypdf import PdfReader
+from docx import Document
+def read_pdf(file_path):
+    reader = PdfReader(file_path)
+    text = ""
+    for page in reader.pages:
+        page_text = page.extract_text()
+        if page_text:
+            text += page_text + "\n"
+    return text
+
+def read_docx(file_path):
+    document = Document(file_path)
+    text = ""
+    for paragraph in document.paragraphs:
+        if paragraph.text.strip():
+            text += paragraph.text + "\n"
+    
+    for table in document.tables:
+        for row in table.rows:
+            for cell in row.cells:
+                if cell.text.strip():
+                    text += cell.text + "\n"
+    return text
+
+
+def read_resume(file_path):
+    if file_path.suffix.lower() == ".pdf":
+        return read_pdf(file_path)
+    elif file_path.suffix.lower() == ".docx":
+        return read_docx(file_path)
+    else:
+        return None
+
+
+
+# lets do it now
+resume_folder = Path("resumes")
+all_results=[]
+for file_path in resume_folder.iterdir():
+    #C:\Users\Pratyush\padho_with_pratyush\week1\day5\resumes\abhay resume new - Abhay Singh.pdf
+    if file_path.suffix.lower() not in [".pdf", ".docx"]:
+        continue
+    print("\nProcessing:", file_path.name)
+    resume_text = read_resume(file_path)
+    parsed_resume=parse_resume(resume_text) # llm call1
+    time.sleep(5)
+    result = final_score(job, parsed_resume) #llm caLL2
+    #score and details
+    #acount chtgpt
+    # request bhejna shhur krega millions
+    #chattgot server jam ho jayega
+    time.sleep(5)
+    print("Score:", result.score)
+    all_results.append({
+        "name": parsed_resume.name,
+        "score": result.score,
+        "details": result.details
+    })
+all_results.sort(
+    key=lambda candidate: candidate["score"],
+    reverse=True
+)
+top_2 = all_results[:2]
+worst_2 = all_results[-2:]
+
+
+print("TOP 2 CANDIDATES")
+for candidate in top_2:
+
+    print(
+        candidate["name"],
+        "-",
+        candidate["score"],
+        "%"
+    )
+
+    print(candidate["details"])
+
+print("LOWEST 2 CANDIDATES")
+for candidate in worst_2:
+
+    print(
+        candidate["name"],
+        "-",
+        candidate["score"],
+        "%"
+    )
+    print(candidate["details"])
