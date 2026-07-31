@@ -17,7 +17,7 @@ system_prompt = f'''
 Your are a manager at smartphone service center
 #Task:
 1. Divide the user issue into the given category:
-(technical issue , hardware repair)
+(software issue , hardware repair)
 #constraint:
 1. Don't no categorize by your own 
 #roll_back:
@@ -27,7 +27,7 @@ system_message = {
     "role": "system",
     "content": system_prompt
 }
-user_prompt = '''My boyfriend cheated on me , I am upset and i want a new one '''
+user_prompt = '''My smartphone's diplay is broken, I want a new display for my i phone 13 '''
 user_message = {
     "role" : 'user',
     'content': user_prompt
